@@ -109,12 +109,16 @@
     .app-layout {
       display: flex;
       min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
     }
 
     /* Sticky Sidebar */
     .sidebar {
       width: 340px;
       min-width: 340px;
+      max-width: 340px;
+      flex-shrink: 0;
       background: var(--sidebar-bg);
       border-right: 1px solid var(--border-color);
       height: 100vh;
@@ -123,23 +127,61 @@
       display: flex;
       flex-direction: column;
       z-index: 100;
-      transition: transform 0.3s ease;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, visibility 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      margin-left: -340px;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
     }
 
     .sidebar-header {
-      padding: 1.5rem 1.25rem 1rem;
+      padding: 1.25rem 1.25rem 1rem;
       border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
     }
 
     .brand-title {
       font-family: var(--font-title);
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: var(--gold-light);
       display: flex;
       align-items: center;
       gap: 0.5rem;
       letter-spacing: 1px;
+    }
+
+    .sidebar-collapse-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-collapse-btn:hover {
+      background: var(--gold-glow);
+      color: var(--gold-primary);
+      border-color: var(--gold-primary);
+      transform: scale(1.05);
     }
 
     .brand-sub {
@@ -242,10 +284,12 @@
     /* Main Container */
     .main-wrapper {
       flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow-y: auto;
+      transition: width 0.3s ease;
     }
 
     /* Top Navigation Bar */
@@ -267,17 +311,43 @@
     .nav-left {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .menu-toggle {
-      display: none;
-      background: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      background: var(--bg-card);
       border: 1px solid var(--border-color);
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
       color: var(--text-main);
       cursor: pointer;
+      font-size: 0.88rem;
+      font-family: var(--font-ui);
+      font-weight: 500;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      box-shadow: 0 0 10px var(--gold-glow);
+    }
+
+    .menu-toggle.active {
+      background: var(--gold-glow);
+      border-color: var(--gold-primary);
+      color: var(--gold-primary);
+    }
+
+    .menu-toggle svg {
+      display: block;
+      flex-shrink: 0;
     }
 
     .main-search-container {
@@ -837,13 +907,34 @@
         left: 0;
         top: 0;
         transform: translateX(-100%);
+        margin-left: 0 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
         box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 200;
       }
       .sidebar.open {
         transform: translateX(0);
       }
-      .menu-toggle {
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 150;
+      }
+      .sidebar-backdrop.active {
         display: block;
+      }
+      .menu-toggle-label {
+        display: none;
+      }
+      .menu-toggle {
+        padding: 0.45rem;
       }
       .content-container {
         padding: 1.5rem 1rem 3rem;
@@ -857,11 +948,21 @@
 <body>
 
 <div class="app-layout">
+  <!-- Mobile Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
   <!-- Left Sticky Navigation Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand-title">
-        <span>🔱</span> HARIVAMSHA
+      <div class="sidebar-header-top">
+        <div class="brand-title">
+          <span>🔱</span> HARIVAMSHA
+        </div>
+        <button class="sidebar-collapse-btn" onclick="toggleSidebar()" aria-label="Collapse Sidebar" title="ಪ್ಯಾನೆಲ್ ಮುಚ್ಚಿ (Collapse Panel) [Ctrl+B]">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
       </div>
       <div class="brand-sub">ಶ್ರೀ ಹರಿವಂಶ ಮಹಾ ಸಂಗ್ರಹ</div>
       <div class="toc-search">
@@ -918,8 +1019,12 @@
     <!-- Top Bar -->
     <header class="top-bar">
       <div class="nav-left">
-        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-          ☰
+        <button class="menu-toggle" id="menuToggleBtn" onclick="toggleSidebar()" aria-label="Toggle Sidebar" title="ವಿಷಯ ಸೂಚಿ ಪ್ಯಾನೆಲ್ ತೋರಿಸಿ / ಮುಚ್ಚಿ (Toggle Sidebar) [Ctrl+B]">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+          <span class="menu-toggle-label">ವಿಷಯ ಸೂಚಿ</span>
         </button>
         <div class="main-search-container">
           <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -4472,11 +4577,74 @@
     if (sel) sel.value = savedTheme;
   }
 
-  // Mobile Sidebar Toggle
-  function toggleSidebar() {
-    const sb = document.getElementById('sidebar');
-    sb.classList.toggle('open');
+  // Sidebar Toggle (Desktop Collapse & Mobile Off-Canvas)
+  function updateSidebarUI(isCollapsed) {
+    const btn = document.getElementById('menuToggleBtn');
+    if (!btn) return;
+    if (isCollapsed) {
+      btn.classList.add('active');
+      btn.title = "ವಿಷಯ ಸೂಚಿ ಪ್ಯಾನೆಲ್ ವಿಸ್ತರಿಸಿ (Expand Sidebar) [Ctrl+B]";
+    } else {
+      btn.classList.remove('active');
+      btn.title = "ವಿಷಯ ಸೂಚಿ ಪ್ಯಾನೆಲ್ ಕುಗ್ಗಿಸಿ (Collapse Sidebar) [Ctrl+B]";
+    }
   }
+
+  function toggleSidebar(forceState) {
+    const sb = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const isMobile = window.innerWidth <= 820;
+
+    if (isMobile) {
+      const willOpen = forceState !== undefined ? forceState : !sb.classList.contains('open');
+      if (willOpen) {
+        sb.classList.add('open');
+        if (backdrop) backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sb.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    } else {
+      const willCollapse = forceState !== undefined ? !forceState : !sb.classList.contains('collapsed');
+      if (willCollapse) {
+        sb.classList.add('collapsed');
+        localStorage.setItem('harivamsha_sidebar_collapsed', 'true');
+        updateSidebarUI(true);
+      } else {
+        sb.classList.remove('collapsed');
+        localStorage.setItem('harivamsha_sidebar_collapsed', 'false');
+        updateSidebarUI(false);
+      }
+    }
+  }
+
+  // Restore sidebar state on load
+  if (window.innerWidth > 820) {
+    if (localStorage.getItem('harivamsha_sidebar_collapsed') === 'true') {
+      const sb = document.getElementById('sidebar');
+      if (sb) sb.classList.add('collapsed');
+      updateSidebarUI(true);
+    }
+  }
+
+  // Keyboard shortcut Ctrl+B / Cmd+B to toggle sidebar
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      toggleSidebar();
+    }
+  });
+
+  // Close mobile sidebar on TOC link click
+  document.querySelectorAll('.toc-item').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 820) {
+        toggleSidebar(false);
+      }
+    });
+  });
 
   // Card Collapse / Expand
   function toggleCard(cardId) {
